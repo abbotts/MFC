@@ -171,7 +171,8 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Cray")
                 "SHELL: -K trap=fp" "SHELL: -G2"
 
         )
-        add_link_options("SHELL: -K trap=fp" "SHELL: -G2")
+        # "SHELL: -mno-unsafe-fp-atomics"
+        add_link_options("SHELL: -K trap=fp" "SHELL: -G2" "SHELL: -mnunsafe-fp-atomics" )
     endif()
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Flang")
