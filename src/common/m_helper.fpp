@@ -267,7 +267,7 @@ contains
                       + (ir - 1._wp)*log(R0mx/R0mn)/(nb - 1._wp)
             R0(ir) = exp(phi(ir))
         end do
-        dphi = phi(2) - phi(1)
+        !dphi = phi(2) - phi(1)
 
         ! weights for quadrature using Simpson's rule
         do ir = 2, nb - 1

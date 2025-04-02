@@ -181,6 +181,16 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Flang")
         $<$<COMPILE_LANGUAGE:Fortran>:-Mpreprocess>
         $<$<COMPILE_LANGUAGE:Fortran>:-fdefault-real-8>
     )
+elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "LLVMFlang")
+    add_compile_options(
+        $<$<COMPILE_LANGUAGE:Fortran>:-ffree-form>
+        $<$<COMPILE_LANGUAGE:Fortran>:-cpp>
+	#$<$<COMPILE_LANGUAGE:Fortran>:-fdefault-real-8>
+        $<$<COMPILE_LANGUAGE:Fortran>:-fopenmp>
+        $<$<COMPILE_LANGUAGE:Fortran>:--offload-arch=gfx90a>
+	$<$<COMPILE_LANGUAGE:Fortran>:-ffast-math>
+    )
+    add_link_options("-fopenmp" "--offload-arch=gfx90a" "--save-temps")
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     add_compile_options($<$<COMPILE_LANGUAGE:Fortran>:-free>)
 

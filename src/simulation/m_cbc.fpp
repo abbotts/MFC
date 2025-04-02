@@ -945,7 +945,7 @@ contains
                         if (model_eqns == 1) then
                             drho_dt = dalpha_rho_dt(1)
                             dgamma_dt = dadv_dt(1)
-                            dpi_inf_dt = dadv_dt(2)
+                            !dpi_inf_dt = dadv_dt(2)
                         else
                             !$acc loop seq
                             do i = 1, num_fluids

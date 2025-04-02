@@ -563,7 +563,9 @@ contains
         real(wp), dimension(num_fluids) :: alpha_rho_L, alpha_L, alpha_R, alpha_rho_R
         real(wp), dimension(num_dims) :: vel_L, vel_R
         real(wp), dimension(-2:3,-2:2,num_dims) :: rho_sf
-        real(wp), dimension(-2:3) :: dvel1, dvel2
+        real(wp), dimension(-2:3) :: dvel1, dvel2, rho_sf_small
+        real(wp), dimension(num_dims,num_dims) :: dvel
+        real(wp), dimension(4) :: vflux_L_arr, vflux_R_arr
 
         if (idir == 1) then
             if(p == 0) then
@@ -965,6 +967,7 @@ contains
                     end do
                 end do
             else
+                !$omp target teams loop collapse(3) private(rho_L,gamma_L,pi_inf_L,mu_L,a_L,vel_L,vel_R,pres_L,alpha_L,alpha_R,alpha_rho_L,cfl,dvel,F_L,E_L,mu_R,rho_sf_small,alpha_rho_R,vflux_L_arr,vflux_R_arr)
                 !$acc parallel loop collapse(3) gang vector default(present) private(rho_L,gamma_L,pi_inf_L,mu_L,a_L,vel_L,vel_R, pres_L,alpha_L,alpha_R,alpha_rho_L,cfl,dvel1,dvel2,F_L,E_L,mu_R,rho_sf,alpha_rho_R,vflux_L,vflux_R,vflux_L1, vflux_R1, vflux_L2, vflux_R2, vflux_L3, vflux_R3)
                 do l = 0, p
                     do k = 0, n
@@ -972,6 +975,7 @@ contains
 
                             !$acc loop seq 
                             do q = -2, 3
+                                !x-direction contributions
                                 !$acc loop seq 
                                 do i = -2, 2
                                     rho_L = 0._wp
@@ -979,9 +983,24 @@ contains
                                     do r = 1, num_fluids
                                         rho_L = rho_L + q_prim_vf(r)%sf(j+i+q,k,l)
                                     end do
-                                    rho_sf(q,i,1) = rho_L
+                                    rho_sf_small(i) = rho_L
                                 end do
-
+                                dvel(1,1) = (1/(12._wp*dx(j))) * ( &
+                                8._wp*q_prim_vf(momxb)%sf(j+1+q,k,l)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb)%sf(j-1+q,k,l)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb)%sf(j-2+q,k,l)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb)%sf(j+2+q,k,l)/rho_sf_small(2) )
+                                dvel(1,2) = (1/(12._wp*dx(j))) * ( &
+                                8._wp*q_prim_vf(momxb+1)%sf(j+1+q,k,l)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb+1)%sf(j-1+q,k,l)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb+1)%sf(j-2+q,k,l)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb+1)%sf(j+2+q,k,l)/rho_sf_small(2) )
+                                dvel(1,3) = (1/(12._wp*dx(j))) * ( &
+                                8._wp*q_prim_vf(momxb+2)%sf(j+1+q,k,l)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb+2)%sf(j-1+q,k,l)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb+2)%sf(j-2+q,k,l)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb+2)%sf(j+2+q,k,l)/rho_sf_small(2) )
+                                !y-direction contributions
                                 !$acc loop seq 
                                 do i = -2, 2
                                     rho_L = 0._wp
@@ -989,9 +1008,24 @@ contains
                                     do r = 1, num_fluids
                                         rho_L = rho_L + q_prim_vf(r)%sf(j+q,k+i,l)
                                     end do
-                                    rho_sf(q,i,2) = rho_L
+                                    rho_sf_small(i) = rho_L
                                 end do
-
+                                dvel(1,2) = (1/(12._wp*dy(k))) * ( &
+                                8._wp*q_prim_vf(momxb)%sf(j+q,k+1,l)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb)%sf(j+q,k-1,l)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb)%sf(j+q,k-2,l)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb)%sf(j+q,k+2,l)/rho_sf_small(2) )
+                                dvel(2,2) = (1/(12._wp*dy(k))) * ( &
+                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k+1,l)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k-1,l)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb+1)%sf(j+q,k-2,l)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb+1)%sf(j+q,k+2,l)/rho_sf_small(2) )
+                                dvel(3,2) = (1/(12._wp*dy(k))) * ( &
+                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k+1,l)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k-1,l)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb+2)%sf(j+q,k-2,l)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb+2)%sf(j+q,k+2,l)/rho_sf_small(2))
+                                !z-direction contributions
                                 !$acc loop seq 
                                 do i = -2, 2
                                     rho_L = 0._wp
@@ -999,118 +1033,46 @@ contains
                                     do r = 1, num_fluids
                                         rho_L = rho_L + q_prim_vf(r)%sf(j+q,k,l+i)
                                     end do
-                                    rho_sf(q,i,3) = rho_L
+                                    rho_sf_small(i) = rho_L
                                 end do
+                                dvel(1,3) = (1/(12._wp*dz(l))) * ( &
+                                8._wp*q_prim_vf(momxb)%sf(j+q,k,l+1)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb)%sf(j+q,k,l-1)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb)%sf(j+q,k,l-2)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb)%sf(j+q,k,l+2)/rho_sf_small(2) )
+                                dvel(2,3) = (1/(12._wp*dz(l))) * ( &
+                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k,l+1)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k,l-1)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb+1)%sf(j+q,k,l-2)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb+1)%sf(j+q,k,l+2)/rho_sf_small(2) )
+                                dvel(3,3) = (1/(12._wp*dz(l))) * ( &
+                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k,l+1)/rho_sf_small(1) - &
+                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k,l-1)/rho_sf_small(-1) + &
+                                q_prim_vf(momxb+2)%sf(j+q,k,l-2)/rho_sf_small(-2) - &
+                                q_prim_vf(momxb+2)%sf(j+q,k,l+2)/rho_sf_small(2) )
+                                if (q == 0) then
+                                    jac_rhs(i,j,k) = alf_igr * (2._wp*(dvel(1,2)*dvel(2,1) &
+                                        + dvel(1,3)*dvel(3,1) &
+                                        + dvel(2,3)*dvel(3,2)) &
+                                        + dvel(1,1)**2_wp + dvel(2,2)**2_wp &
+                                        + dvel(3,3)**2_wp &
+                                        + (dvel(1,1) + dvel(2,2)+ dvel(3,3))**2_wp)
+                                end if
+                                if (q > -2 .and. viscous) then
+                                    vflux_L_arr(1) = vflux_L_arr(1) + coeff_L(q)*(dvel(1,2)+dvel(2,1))
+                                    vflux_L_arr(2) = vflux_L_arr(2) + coeff_L(q)*(dvel(1,3)+dvel(3,1))
+                                    vflux_L_arr(3) = vflux_L_arr(3) + coeff_L(q)*(4._wp*dvel(1,1)-2._wp*dvel(2,2))/3._wp
+                                    vflux_L_arr(4) = vflux_L_arr(4) + coeff_L(q)*-2._wp/3._wp*dvel(3,3)
+                                end if
+                                if (q < 3 .and. viscous) then
+                                    vflux_R_arr(1) = vflux_R_arr(1) + coeff_R(q)*(dvel(1,2)+dvel(2,1))
+                                    vflux_R_arr(2) = vflux_R_arr(2) + coeff_R(q)*(dvel(1,3)+dvel(3,1))
+                                    vflux_R_arr(3) = vflux_R_arr(3) + coeff_R(q)*(4._wp*dvel(1,1)-2._wp*dvel(2,2))/3._wp
+                                    vflux_R_arr(4) = vflux_R_arr(4) + coeff_R(q)*-2._wp/3._wp*dvel(3,3)
+                                end if
                             end do
 
-                            !! duy & dvx
-                            !$acc loop seq
-                            do q = -2, 3
-                                dvel1(q) = (1/(12._wp*dy(k))) * ( &
-                                8._wp*q_prim_vf(momxb)%sf(j+q,k+1,l)/rho_sf(q,1,2) - &
-                                8._wp*q_prim_vf(momxb)%sf(j+q,k-1,l)/rho_sf(q,-1,2) + &
-                                q_prim_vf(momxb)%sf(j+q,k-2,l)/rho_sf(q,-2,2) - &
-                                q_prim_vf(momxb)%sf(j+q,k+2,l)/rho_sf(q,2,2) )
-
-                                dvel2(q) = (1/(12._wp*dx(j))) * ( &
-                                8._wp*q_prim_vf(momxb+1)%sf(j+1+q,k,l)/rho_sf(q,1,1) - &
-                                8._wp*q_prim_vf(momxb+1)%sf(j-1+q,k,l)/rho_sf(q,-1,1) + &
-                                q_prim_vf(momxb+1)%sf(j-2+q,k,l)/rho_sf(q,-2,1) - &
-                                q_prim_vf(momxb+1)%sf(j+2+q,k,l)/rho_sf(q,2,1) )
-                            end do
-
-                            jac_rhs(j, k, l) = alf_igr* (2._wp*dvel1(0)*dvel2(0))
-
-                            if (viscous) then
-                                vflux_L = sum(coeff_L(-1:3)*(dvel1(-1:3)+dvel2(-1:3)))
-                                vflux_R = sum(coeff_R(-2:2)*(dvel1(-2:2)+dvel2(-2:2)))
-                            end if
-
-                            !! duz & dwx
                             !$acc loop seq 
-                            do q = -2, 3
-                                dvel1(q) = (1/(12._wp*dz(l))) * ( &
-                                8._wp*q_prim_vf(momxb)%sf(j+q,k,l+1)/rho_sf(q,1,3) - &
-                                8._wp*q_prim_vf(momxb)%sf(j+q,k,l-1)/rho_sf(q,-1,3) + &
-                                q_prim_vf(momxb)%sf(j+q,k,l-2)/rho_sf(q,-2,3) - &
-                                q_prim_vf(momxb)%sf(j+q,k,l+2)/rho_sf(q,2,3) )
-
-                                dvel2(q) = (1/(12._wp*dx(j))) * ( &
-                                8._wp*q_prim_vf(momxb+2)%sf(j+1+q,k,l)/rho_sf(q,1,1) - &
-                                8._wp*q_prim_vf(momxb+2)%sf(j-1+q,k,l)/rho_sf(q,-1,1) + &
-                                q_prim_vf(momxb+2)%sf(j-2+q,k,l)/rho_sf(q,-2,1) - &
-                                q_prim_vf(momxb+2)%sf(j+2+q,k,l)/rho_sf(q,2,1) )
-                            end do
-
-                            jac_rhs(j, k, l) = jac_rhs(j,k,l) + alf_igr* (2._wp * dvel1(0)* dvel2(0))
-                            
-                            if (viscous) then
-                                vflux_L1 = sum(coeff_L(-1:3)*(dvel1(-1:3)+dvel2(-1:3)))
-                                vflux_R1 = sum(coeff_R(-2:2)*(dvel1(-2:2)+dvel2(-2:2)))
-                            endif
-
-                            !! dvz & dwy
-                            !$acc loop seq
-                            do q = -2, 3
-                                dvel1(q) = (1/(12._wp*dz(l))) * ( &
-                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k,l+1)/rho_sf(q,1,3) - &
-                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k,l-1)/rho_sf(q,-1,3) + &
-                                q_prim_vf(momxb+1)%sf(j+q,k,l-2)/rho_sf(q,-2,3) - &
-                                q_prim_vf(momxb+1)%sf(j+q,k,l+2)/rho_sf(q,2,3) )
-
-                                dvel2(q) = (1/(12._wp*dy(k))) * ( &
-                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k+1,l)/rho_sf(q,1,2) - &
-                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k-1,l)/rho_sf(q,-1,2) + &
-                                q_prim_vf(momxb+2)%sf(j+q,k-2,l)/rho_sf(q,-2,2) - &
-                                q_prim_vf(momxb+2)%sf(j+q,k+2,l)/rho_sf(q,2,2))
-                            end do
-
-                            jac_rhs(j,k,l) = jac_rhs(j,k,l) + alf_igr*(2._wp*dvel1(0)*dvel2(0))
-
-                            !! dux & dvy
-                            !$acc loop seq
-                            do q = -2, 3
-                                dvel1(q) = (1/(12._wp*dx(j))) * ( &
-                                8._wp*q_prim_vf(momxb)%sf(j+1+q,k,l)/rho_sf(q,1,1) - &
-                                8._wp*q_prim_vf(momxb)%sf(j-1+q,k,l)/rho_sf(q,-1,1) + &
-                                q_prim_vf(momxb)%sf(j-2+q,k,l)/rho_sf(q,-2,1) - &
-                                q_prim_vf(momxb)%sf(j+2+q,k,l)/rho_sf(q,2,1) )
-
-
-                                dvel2(q) = (1/(12._wp*dy(k))) * ( &
-                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k+1,l)/rho_sf(q,1,2) - &
-                                8._wp*q_prim_vf(momxb+1)%sf(j+q,k-1,l)/rho_sf(q,-1,2) + &
-                                q_prim_vf(momxb+1)%sf(j+q,k-2,l)/rho_sf(q,-2,2) - &
-                                q_prim_vf(momxb+1)%sf(j+q,k+2,l)/rho_sf(q,2,2) )
-                            end do
-
-                            jac_rhs(j, k, l) = jac_rhs(j,k,l) + alf_igr* (dvel1(0)**2_wp + dvel2(0)**2_wp)
-
-                            if (viscous) then
-                                vflux_L2 = sum(coeff_L(-1:3)*(4._wp*dvel1(-1:3)-2._wp*dvel2(-1:3))/3._wp)
-                                vflux_R2 = sum(coeff_R(-2:2)*(4._wp*dvel1(-2:2)-2._wp*dvel2(-2:2))/3._wp)
-                            endif
-
-                            !! dux + dvy, dwz
-                            !$acc loop seq 
-                            do q = -2, 3
-                                dvel1(q) = dvel1(q) + dvel2(q)
-
-                                dvel2(q) = (1/(12._wp*dz(l))) * ( &
-                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k,l+1)/rho_sf(q,1,3) - &
-                                8._wp*q_prim_vf(momxb+2)%sf(j+q,k,l-1)/rho_sf(q,-1,3) + &
-                                q_prim_vf(momxb+2)%sf(j+q,k,l-2)/rho_sf(q,-2,3) - &
-                                q_prim_vf(momxb+2)%sf(j+q,k,l+2)/rho_sf(q,2,3) )
-                            end do
-
-                            jac_rhs(j,k,l) = jac_rhs(j,k,l) + alf_igr * (dvel2(0) **2_wp + (dvel1(0) + dvel2(0))**2_wp)
-
-                            if (viscous) then
-                                vflux_L3 = sum(coeff_L(-1:3)*(-2._wp*dvel2(-1:3))/3._wp)
-                                vflux_R3 = sum(coeff_R(-2:2)*(-2._wp*dvel2(-2:2))/3._wp)
-                            endif
-
-                                                        !$acc loop seq 
                             do i = 1, num_fluids
                                 alpha_rho_L(i) = (1._wp/60._wp) * (-3._wp * q_prim_vf(i)%sf(j-1, k, l) + &
                                                 27._wp * q_prim_vf(i)%sf(j, k, l) + &
@@ -1344,11 +1306,11 @@ contains
                                 !$acc atomic
                                 rhs_vf(E_idx)%sf(j,k,l) = rhs_vf(E_idx)%sf(j,k,l) + 0.5_wp*mu_R*vflux_R*vel_R(2)*(1._wp/dx(j))
                             
-                            end if
+                            !end if
 
 
 
-                            if(viscous) then
+                            !if(viscous) then
 
 
                                     !$acc atomic
@@ -1371,11 +1333,11 @@ contains
                                     !$acc atomic
                                     rhs_vf(E_idx)%sf(j,k,l) = rhs_vf(E_idx)%sf(j,k,l) + 0.5_wp*mu_R*vflux_R1*vel_R(3)*(1._wp/dx(j))
                                 
-                            end if
+                            !end if
 
 
 
-                            if(viscous) then 
+                            !if(viscous) then 
 
                                 !$acc atomic
                                 rhs_vf(momxb)%sf(j+1,k,l) = rhs_vf(momxb)%sf(j+1,k,l) - 0.5_wp*mu_L*vflux_L2*(1._wp/dx(j+1))
@@ -1397,11 +1359,11 @@ contains
                                 !$acc atomic
                                 rhs_vf(E_idx)%sf(j,k,l) = rhs_vf(E_idx)%sf(j,k,l) + 0.5_wp*mu_R*vflux_R2*vel_R(1)*(1._wp/dx(j))
                             
-                            end if
+                            !end if
 
 
 
-                            if(viscous) then 
+                            !if(viscous) then 
 
                                 !$acc atomic
                                 rhs_vf(momxb)%sf(j+1,k,l) = rhs_vf(momxb)%sf(j+1,k,l) - 0.5_wp*mu_L*vflux_L3*(1._wp/dx(j+1))

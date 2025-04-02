@@ -42,8 +42,8 @@ print(
             "cyl_coord": "F",
             "dt": dt,
             "t_step_start": 0,
-            "t_step_stop": Nt,
-            "t_step_save": int(Nt / 100),
+            "t_step_stop": 10,
+            "t_step_save": 10,
            # Simulation Algorithm Parameters
             "num_patches": 1,
             "model_eqns": 2,
@@ -76,7 +76,7 @@ print(
             "omega_wrt(3)": "T",
             "qm_wrt": "T",
             "fd_order": 4,
-            "parallel_io": "T",
+            "parallel_io": "F",
             # I will use 1 for WATER properties, and 2 for AIR properties
             # Patch 1: Background (AIR - 2)
             "patch_icpp(1)%geometry": 9,

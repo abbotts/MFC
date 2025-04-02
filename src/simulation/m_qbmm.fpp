@@ -692,62 +692,62 @@ contains
 
         coeffs = 0._wp
 
-        do i2 = 0, 2; do i1 = 0, 2
-                if ((i1 + i2) <= 2) then
-                    if (bubble_model == 3) then
-                        ! RPE
-                        coeffs(1, i1, i2) = -1._wp*i2*pres/rho
-                        coeffs(2, i1, i2) = -3._wp*i2/2._wp
-                        coeffs(3, i1, i2) = i2/rho
-                        coeffs(4, i1, i2) = i1
-                        if (.not. f_is_default(Re_inv)) coeffs(5, i1, i2) = -4._wp*i2*Re_inv/rho
-                        if (.not. f_is_default(Web)) coeffs(6, i1, i2) = -2._wp*i2/Web/rho
-                        coeffs(7, i1, i2) = 0._wp
-                    else if (bubble_model == 2) then
-                        ! KM with approximation of 1/(1-V/C) = 1+V/C
-                        coeffs(1, i1, i2) = -3._wp*i2/2._wp
-                        coeffs(2, i1, i2) = -i2/c
-                        coeffs(3, i1, i2) = i2/(2._wp*c*c)
-                        coeffs(4, i1, i2) = -i2*pres/rho
-                        coeffs(5, i1, i2) = -2._wp*i2*pres/(c*rho)
-                        coeffs(6, i1, i2) = -i2*pres/(c*c*rho)
-                        coeffs(7, i1, i2) = i2/rho
-                        coeffs(8, i1, i2) = 2._wp*i2/(c*rho)
-                        coeffs(9, i1, i2) = i2/(c*c*rho)
-                        coeffs(10, i1, i2) = -3._wp*i2*gam/(c*rho)
-                        coeffs(11, i1, i2) = -3._wp*i2*gam/(c*c*rho)
-                        coeffs(12, i1, i2) = i1
-                        coeffs(13, i1, i2) = 0._wp
-                        coeffs(14, i1, i2) = 0._wp
-                        coeffs(15, i1, i2) = 0._wp
-                        if (.not. f_is_default(Re_inv)) coeffs(16, i1, i2) = -i2*4._wp*Re_inv/rho
-                        if (.not. f_is_default(Web)) coeffs(17, i1, i2) = -i2*2._wp/Web/rho
-                        if (.not. f_is_default(Re_inv)) then
-                            coeffs(18, i1, i2) = i2*6._wp*Re_inv/(rho*c)
-                            coeffs(19, i1, i2) = -i2*2._wp*Re_inv/(rho*c*c)
-                            coeffs(20, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c)
-                            coeffs(21, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c*c)
-                            coeffs(22, i1, i2) = -i2*4._wp/(rho*rho*c)
-                            coeffs(23, i1, i2) = -i2*4._wp/(rho*rho*c*c)
-                            coeffs(24, i1, i2) = i2*16._wp*Re_inv*Re_inv/(rho*rho*c)
-                            if (.not. f_is_default(Web)) then
-                                coeffs(25, i1, i2) = i2*8._wp*Re_inv/Web/(rho*rho*c)
-                            end if
-                            coeffs(26, i1, i2) = -12._wp*i2*gam*Re_inv/(rho*rho*c*c)
-                        end if
-                        coeffs(27, i1, i2) = 3._wp*i2*gam*R_v*Tw/(c*rho)
-                        coeffs(28, i1, i2) = 3._wp*i2*gam*R_v*Tw/(c*c*rho)
-                        if (.not. f_is_default(Re_inv)) then
-                            coeffs(29, i1, i2) = 12._wp*i2*gam*R_v*Tw*Re_inv/(rho*rho*c*c)
-                        end if
-                        coeffs(30, i1, i2) = 3._wp*i2*gam/(c*rho)
-                        coeffs(31, i1, i2) = 3._wp*i2*gam/(c*c*rho)
-                        if (.not. f_is_default(Re_inv)) then
-                            coeffs(32, i1, i2) = 12._wp*i2*gam*Re_inv/(rho*rho*c*c)
-                        end if
-                    end if
-                end if
-            end do; end do
+        !do i2 = 0, 2; do i1 = 0, 2
+        !        if ((i1 + i2) <= 2) then
+        !            if (bubble_model == 3) then
+        !                ! RPE
+        !                coeffs(1, i1, i2) = -1._wp*i2*pres/rho
+        !                coeffs(2, i1, i2) = -3._wp*i2/2._wp
+        !                coeffs(3, i1, i2) = i2/rho
+        !                coeffs(4, i1, i2) = i1
+        !                if (.not. f_is_default(Re_inv)) coeffs(5, i1, i2) = -4._wp*i2*Re_inv/rho
+        !                if (.not. f_is_default(Web)) coeffs(6, i1, i2) = -2._wp*i2/Web/rho
+        !                coeffs(7, i1, i2) = 0._wp
+        !            else if (bubble_model == 2) then
+        !                ! KM with approximation of 1/(1-V/C) = 1+V/C
+        !                coeffs(1, i1, i2) = -3._wp*i2/2._wp
+        !                coeffs(2, i1, i2) = -i2/c
+        !                coeffs(3, i1, i2) = i2/(2._wp*c*c)
+        !                coeffs(4, i1, i2) = -i2*pres/rho
+        !                coeffs(5, i1, i2) = -2._wp*i2*pres/(c*rho)
+        !                coeffs(6, i1, i2) = -i2*pres/(c*c*rho)
+        !                coeffs(7, i1, i2) = i2/rho
+        !                coeffs(8, i1, i2) = 2._wp*i2/(c*rho)
+        !                coeffs(9, i1, i2) = i2/(c*c*rho)
+        !                coeffs(10, i1, i2) = -3._wp*i2*gam/(c*rho)
+        !                coeffs(11, i1, i2) = -3._wp*i2*gam/(c*c*rho)
+        !                coeffs(12, i1, i2) = i1
+        !                coeffs(13, i1, i2) = 0._wp
+        !                coeffs(14, i1, i2) = 0._wp
+        !                coeffs(15, i1, i2) = 0._wp
+        !                if (.not. f_is_default(Re_inv)) coeffs(16, i1, i2) = -i2*4._wp*Re_inv/rho
+        !                if (.not. f_is_default(Web)) coeffs(17, i1, i2) = -i2*2._wp/Web/rho
+        !                if (.not. f_is_default(Re_inv)) then
+        !                    coeffs(18, i1, i2) = i2*6._wp*Re_inv/(rho*c)
+        !                    coeffs(19, i1, i2) = -i2*2._wp*Re_inv/(rho*c*c)
+        !                    coeffs(20, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c)
+        !                    coeffs(21, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c*c)
+        !                    coeffs(22, i1, i2) = -i2*4._wp/(rho*rho*c)
+        !                    coeffs(23, i1, i2) = -i2*4._wp/(rho*rho*c*c)
+        !                    coeffs(24, i1, i2) = i2*16._wp*Re_inv*Re_inv/(rho*rho*c)
+        !                    if (.not. f_is_default(Web)) then
+        !                        coeffs(25, i1, i2) = i2*8._wp*Re_inv/Web/(rho*rho*c)
+        !                    end if
+        !                    coeffs(26, i1, i2) = -12._wp*i2*gam*Re_inv/(rho*rho*c*c)
+        !                end if
+        !                coeffs(27, i1, i2) = 3._wp*i2*gam*R_v*Tw/(c*rho)
+        !                coeffs(28, i1, i2) = 3._wp*i2*gam*R_v*Tw/(c*c*rho)
+        !                if (.not. f_is_default(Re_inv)) then
+        !                    coeffs(29, i1, i2) = 12._wp*i2*gam*R_v*Tw*Re_inv/(rho*rho*c*c)
+        !                end if
+        !                coeffs(30, i1, i2) = 3._wp*i2*gam/(c*rho)
+        !                coeffs(31, i1, i2) = 3._wp*i2*gam/(c*c*rho)
+        !                if (.not. f_is_default(Re_inv)) then
+        !                    coeffs(32, i1, i2) = 12._wp*i2*gam*Re_inv/(rho*rho*c*c)
+        !                end if
+        !            end if
+        !        end if
+        !    end do; end do
 
     end subroutine s_coeff_nonpoly
 
@@ -766,52 +766,52 @@ contains
 
         coeffs = 0._wp
 
-        do i2 = 0, 2; do i1 = 0, 2
-                if ((i1 + i2) <= 2) then
-                    if (bubble_model == 3) then
-                        ! RPE
-                        coeffs(1, i1, i2) = -1._wp*i2*pres/rho
-                        coeffs(2, i1, i2) = -3._wp*i2/2._wp
-                        coeffs(3, i1, i2) = i2/rho
-                        coeffs(4, i1, i2) = i1
-                        if (.not. f_is_default(Re_inv)) coeffs(5, i1, i2) = -4._wp*i2*Re_inv/rho
-                        if (.not. f_is_default(Web)) coeffs(6, i1, i2) = -2._wp*i2/Web/rho
-                        coeffs(7, i1, i2) = i2*pv/rho
-                    else if (bubble_model == 2) then
-                        ! KM with approximation of 1/(1-V/C) = 1+V/C
-                        coeffs(1, i1, i2) = -3._wp*i2/2._wp
-                        coeffs(2, i1, i2) = -i2/c
-                        coeffs(3, i1, i2) = i2/(2._wp*c*c)
-                        coeffs(4, i1, i2) = -i2*pres/rho
-                        coeffs(5, i1, i2) = -2._wp*i2*pres/(c*rho)
-                        coeffs(6, i1, i2) = -i2*pres/(c*c*rho)
-                        coeffs(7, i1, i2) = i2/rho
-                        coeffs(8, i1, i2) = 2._wp*i2/(c*rho)
-                        coeffs(9, i1, i2) = i2/(c*c*rho)
-                        coeffs(10, i1, i2) = -3._wp*i2*gam/(c*rho)
-                        coeffs(11, i1, i2) = -3._wp*i2*gam/(c*c*rho)
-                        coeffs(12, i1, i2) = i1
-                        coeffs(13, i1, i2) = i2*(pv)/rho
-                        coeffs(14, i1, i2) = 2._wp*i2*(pv)/(c*rho)
-                        coeffs(15, i1, i2) = i2*(pv)/(c*c*rho)
-                        if (.not. f_is_default(Re_inv)) coeffs(16, i1, i2) = -i2*4._wp*Re_inv/rho
-                        if (.not. f_is_default(Web)) coeffs(17, i1, i2) = -i2*2._wp/Web/rho
-                        if (.not. f_is_default(Re_inv)) then
-                            coeffs(18, i1, i2) = i2*6._wp*Re_inv/(rho*c)
-                            coeffs(19, i1, i2) = -i2*2._wp*Re_inv/(rho*c*c)
-                            coeffs(20, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c)
-                            coeffs(21, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c*c)
-                            coeffs(22, i1, i2) = -i2*4._wp/(rho*rho*c)
-                            coeffs(23, i1, i2) = -i2*4._wp/(rho*rho*c*c)
-                            coeffs(24, i1, i2) = i2*16._wp*Re_inv*Re_inv/(rho*rho*c)
-                            if (.not. f_is_default(Web)) then
-                                coeffs(25, i1, i2) = i2*8._wp*Re_inv/Web/(rho*rho*c)
-                            end if
-                            coeffs(26, i1, i2) = -12._wp*i2*gam*Re_inv/(rho*rho*c*c)
-                        end if
-                    end if
-                end if
-            end do; end do
+        !do i2 = 0, 2; do i1 = 0, 2
+        !        if ((i1 + i2) <= 2) then
+        !            if (bubble_model == 3) then
+        !                ! RPE
+        !                coeffs(1, i1, i2) = -1._wp*i2*pres/rho
+        !                coeffs(2, i1, i2) = -3._wp*i2/2._wp
+        !                coeffs(3, i1, i2) = i2/rho
+        !                coeffs(4, i1, i2) = i1
+        !                if (.not. f_is_default(Re_inv)) coeffs(5, i1, i2) = -4._wp*i2*Re_inv/rho
+        !                if (.not. f_is_default(Web)) coeffs(6, i1, i2) = -2._wp*i2/Web/rho
+        !                coeffs(7, i1, i2) = i2*pv/rho
+        !            else if (bubble_model == 2) then
+        !                ! KM with approximation of 1/(1-V/C) = 1+V/C
+        !                coeffs(1, i1, i2) = -3._wp*i2/2._wp
+        !                coeffs(2, i1, i2) = -i2/c
+        !                coeffs(3, i1, i2) = i2/(2._wp*c*c)
+        !                coeffs(4, i1, i2) = -i2*pres/rho
+        !                coeffs(5, i1, i2) = -2._wp*i2*pres/(c*rho)
+        !                coeffs(6, i1, i2) = -i2*pres/(c*c*rho)
+        !                coeffs(7, i1, i2) = i2/rho
+        !                coeffs(8, i1, i2) = 2._wp*i2/(c*rho)
+        !                coeffs(9, i1, i2) = i2/(c*c*rho)
+        !                coeffs(10, i1, i2) = -3._wp*i2*gam/(c*rho)
+        !                coeffs(11, i1, i2) = -3._wp*i2*gam/(c*c*rho)
+        !                coeffs(12, i1, i2) = i1
+        !                coeffs(13, i1, i2) = i2*(pv)/rho
+        !                coeffs(14, i1, i2) = 2._wp*i2*(pv)/(c*rho)
+        !                coeffs(15, i1, i2) = i2*(pv)/(c*c*rho)
+        !                if (.not. f_is_default(Re_inv)) coeffs(16, i1, i2) = -i2*4._wp*Re_inv/rho
+        !                if (.not. f_is_default(Web)) coeffs(17, i1, i2) = -i2*2._wp/Web/rho
+        !                if (.not. f_is_default(Re_inv)) then
+        !                    coeffs(18, i1, i2) = i2*6._wp*Re_inv/(rho*c)
+        !                    coeffs(19, i1, i2) = -i2*2._wp*Re_inv/(rho*c*c)
+        !                    coeffs(20, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c)
+        !                    coeffs(21, i1, i2) = i2*4._wp*pres*Re_inv/(rho*rho*c*c)
+        !                    coeffs(22, i1, i2) = -i2*4._wp/(rho*rho*c)
+        !                    coeffs(23, i1, i2) = -i2*4._wp/(rho*rho*c*c)
+        !                    coeffs(24, i1, i2) = i2*16._wp*Re_inv*Re_inv/(rho*rho*c)
+        !                    if (.not. f_is_default(Web)) then
+        !                        coeffs(25, i1, i2) = i2*8._wp*Re_inv/Web/(rho*rho*c)
+        !                    end if
+        !                    coeffs(26, i1, i2) = -12._wp*i2*gam*Re_inv/(rho*rho*c*c)
+        !                end if
+        !            end if
+        !        end if
+        !    end do; end do
 
     end subroutine s_coeff
 
