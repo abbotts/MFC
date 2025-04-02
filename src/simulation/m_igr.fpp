@@ -973,6 +973,8 @@ contains
                     do k = 0, n
                         do j = -buff_size+5, m+buff_size-5
 
+                            vflux_L_arr = 0._wp
+                            vflux_R_arr = 0._wp
                             !$acc loop seq 
                             do q = -2, 3
                                 !x-direction contributions
